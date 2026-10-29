@@ -10,13 +10,31 @@ const app = express();
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 app.use(cors({ origin: FRONTEND_URL }));
-// ...
+app.use(express.json());
+
+// ✅ Health check для Render
+app.get('/healthz', (req, res) => {
+  res.status(200).send('OK');
+});
+
+// ✅ Список кейсов для клиента
+app.get('/api/cases', (req, res) => {
+  res.json(cases.map(({ id, name, image, price, items }) => ({
+    id, name, image, price,
+    items: items.map(({ id, name, image, rarity, value }) => ({ id, name, image, rarity, value })),
+  })));
+});
+
+// ✅ ВАЖНО: создаём httpServer (эта строка была потеряна!)
+const httpServer = createServer(app);
+
 const io = new Server(httpServer, { 
   cors: { 
     origin: FRONTEND_URL,
     methods: ["GET", "POST"]
   } 
 });
+
 const users = new Map();
 const battles = new Map();
 
